@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    </head>
+
+    <body>
+        <form id="csvFormId" action="http://localhost:8192" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" id="file" accept=".csv">
+            <input type="submit">
+        </form>
+        </br>
+        <div>
+            <button id="genCSVDataId">Generate CSV data</button>
+        </div>
+        </br>
+        <div>
+            <label>Enter CSV filename:</label>
+            <input id="csvFilenameId" type="text" />
+        </div>
+       
+    </body>
+</html>
+
+<script>
+    function AllocRandomIntArray(max) {
+        var temp = [];
+        for(let i = 0;i < max; i += 1) {
+            temp[i] = i;
+        }
+        var ceiling = max;
+        var arr = [];
+        for(let i = 0;i < max; i += 1) {
+            let index = Math.floor(Math.random() * ceiling);
+            arr[i] = temp[index];
+            temp[index] = temp[ceiling - 1];
+            ceiling -= 1;
+        }
+        return arr;
+    }
+
+    function AllocNameArray() {
+        var arr = [
+            'Peter', 'George', 'Edward', 'Jack', 'Bob', 'Andrew', 'Zane', 'William', 'Vincent', 'David',
+            'Phillip', 'Michael', 'Michelle', 'Ethan', 'Gavin', 'Tracy', 'Robert', 'Tyler', 'Frank', 'Harry'
+        ];
+        return arr;
+    }
+    
+    function AllocSurnameArray() {
+        var arr = [
+            'Lewis', 'Rudman', 'Durden', 'Kelly', 'Prozetsky', 'Becke', 'Burke', 'Klein', 'Williams', 'Grundle',
+            'Lawson', 'Mac-Duck', 'Van Staaden', 'Venter', 'Candy', 'Harris', 'De Morgan', 'Einstein', 'De Nys', 'Starke'
+        ];
+        return arr;
+    }
+
+    function AllocDobArray(size) {
+        var arr = [];
+        for(let i = 0;i < size;i += 1) {
+            let year = (1900 + i) % 2016;
+            let month = Math.floor(Math.random() * 12) + 1;
+            let day = Math.floor(Math.random() * 28) + 1;
+            arr[i] = day.toString() + '/' + month.toString() + '/' + year.toString();
+        }
+        return arr;
+    }
+    
+    function AllocAgeArray(size) {
+        var arr = [];
+        for(let i = 0;i < size; i += 1) {
+            arr[i] = ((1 + i) % 100).toString();
+        }
+        return arr;
+    }
+    
+    function Alloc1000000Rows(arrays) {
+        var randInt = {
+            name : null,
+            surname : null,
+            age : null,
+            dob : null
+        };
+        var rows = [];
+        var csvColumns = "id,Name,Surname,Initials,Age,DateOfBirth\r\n";
+        rows[0] = csvColumns;
+        randInt.name = AllocRandomIntArray(20);
+        var str = "";
+        var id = 1;
+        for(let i = 0; i < 20; i += 1) {
+            let nameStr = '"' + arrays.name[randInt.name[i]] + '",';
+            randInt.surname = AllocRandomIntArray(20);
+            for(let j = 0; j < 20; j += 1) {
+                let surnameStr = '"' + arrays.surname[randInt.surname[j]] + '",' + '"' + nameStr.charAt(1) + '",';
+                let ageLen = arrays.age.length;
+                randInt.age = AllocRandomIntArray(ageLen);
+                for(let k = 0; k < ageLen; k += 1) {
+                    let ageStr = '"' + arrays.age[randInt.age[k]] + '",';
+                    let dobLen = arrays.dob.length;
+                    randInt.dob = AllocRandomIntArray(dobLen);
+                    for(let l = 0; l < dobLen; l += 1) {
+                        let dobStr = '"' + arrays.dob[randInt.dob[l]] + '"';
+                        str = ('"' + id.toString() + '",' + nameStr + surnameStr + ageStr + dobStr + "\r\n");
+                        rows[rows.length] = str;
+                        id += 1;
+                    }
+                }
+            }
+        }
+        return rows;
+    }
+
+    function destroyClickedElement(event) {
+        document.body.removeChild(event.target);
+    }
+    
+    function GenerateRandomCSV() {
+        var arrays = {
+            name : AllocNameArray(),
+            surname : AllocSurnameArray(),
+            dob : AllocDobArray(50),
+            age : AllocAgeArray(50)
+        };
+        var rows = Alloc1000000Rows(arrays);
+        var file = new File(rows, 'csv.csv', {type : 'text/plain'});
+        var textToSaveAsURL = window.URL.createObjectURL(file);
+
+        var csvFilename = document.getElementById('csvFilenameId').value;
+        if( csvFilename === null ||
+            csvFilename == "" ||
+            csvFilename === 'undefined')
+        {
+            csvFilename = 'default.csv';
+        }
+        var downloadLink = document.createElement("a");
+        downloadLink.download = csvFilename;
+        downloadLink.innerHTML = "Download File";
+        downloadLink.href = textToSaveAsURL;
+        downloadLink.onclick = destroyClickedElement;
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+    }
+    
+    function HasValidFormFile() {
+        var csvFilename = document.getElementById('csvFilenameId').value;
+    }
+    
+    function onSubmit(event) {
+        debugger;
+        if($('#file').val() == '') {
+            event.preventDefault();
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    $(document).ready(function onWindowLoad()
+    {
+        debugger;
+        document.getElementById('genCSVDataId').addEventListener('click', GenerateRandomCSV);
+        document.getElementById('csvFormId').addEventListener('submit', onSubmit);
+    });
+</script>
